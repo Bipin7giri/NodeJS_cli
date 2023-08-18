@@ -6,14 +6,7 @@ import path from "path";
 const moduleDir = path.dirname(new URL(import.meta.url).pathname);
 
 async function promptUser() {
-  const DataBaseConnectionfilePath = path.join(
-    moduleDir,
-    `src/db/connection.js`
-  );
-  // Create the directory if it doesn't exist
-  await fs.mkdir(path.dirname(DataBaseConnectionfilePath), { recursive: true });
-  const jsFileContentDatabase = generateConnectionJs();
-  await fs.writeFile(DataBaseConnectionfilePath, jsFileContentDatabase);
+
   const tableData = await inquirer.prompt([
     {
       type: "input",
@@ -106,7 +99,6 @@ try {
   await fs.mkdir(apiFolderPath, { recursive: true });
 
   const jsFileContentApi = await generateApiContent(); // Wait for the promise to resolve
-  console.log(jsFileContentApi)
   await fs.writeFile(apiFilePath, jsFileContentApi); // Write the resolved content
   console.log(`API content saved to ${apiFilePath}`);
 } catch (error) {
@@ -119,6 +111,38 @@ try {
   console.log(createTableStatement);
 }
 
+async function dbConnectionPrompt(){
+  const dbCred = await inquirer.prompt([
+    {
+      type: "input",
+      name: "username",
+      message: "Enter your database username:",
+    },
+    {
+      type: "password",
+      name: "password",
+      message: "Enter your database password:",
+    },
+    {
+      type: "input",
+      name: "host",
+      message: "Enter your host:",
+    },
+    {
+      type: "input",
+      name: "dbName",
+      message: "Enter the name of the database:",
+    }
+  ]);
+  const DataBaseConnectionfilePath = path.join(
+    moduleDir,
+    `src/db/connection.js`
+  );
+  // Create the directory if it doesn't exist
+  await fs.mkdir(path.dirname(DataBaseConnectionfilePath), { recursive: true });
+  const jsFileContentDatabase = generateConnectionJs(dbCred);
+  await fs.writeFile(DataBaseConnectionfilePath, jsFileContentDatabase);
+}
 
 export const executeMigration = async (query) => {
   const connection = knex({
@@ -277,17 +301,18 @@ export default  ${tableConfig.tableName}Controller
   `;
 }
 
-function generateConnectionJs() {
+function generateConnectionJs(payload) {
+  console.log(payload)
   return `
   import knex from "knex";
 
   const connection = knex({
     client: 'mysql2',
     connection: {
-      host: 'localhost',
-      user: 'root',
-      password: 'Password123#@!',
-      database: 'testdb',
+      host: '${payload.host}',
+      user: '${payload.username}',
+      password: '${payload.password}',
+      database: '${payload.dbName}',
     },
     pool: {
       min: 2,
@@ -346,7 +371,6 @@ async function generateApiContent() {
     }
   }
 
-  console.log(routerImportStatements);
   const routerContent = `
 import express from 'express';
 ${routerImportStatements.join("\n")}
@@ -357,7 +381,6 @@ ${routerUseStatements.join("\n")}
 export default router;
 `;
 
-  console.log(routerContent);
   return routerContent;
 }
 
@@ -435,6 +458,17 @@ app.listen(PORT, () => {
 // Call the function to create the index file if needed
 
 async function main() {
+  const DataBaseConnectionfilePath = path.join(
+    moduleDir,
+    `src/db/connection.js`
+  );
+  const dbFileExists = await fs.access(DataBaseConnectionfilePath).then(
+    () => true,
+    (error) => false
+  );
+  if(!dbFileExists){
+   await dbConnectionPrompt()
+  }
   await promptUser();
   await createIndexFileForExpress();
 }
