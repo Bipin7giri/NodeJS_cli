@@ -144,7 +144,7 @@ async function dbConnectionPrompt(){
   await fs.writeFile(DataBaseConnectionfilePath, jsFileContentDatabase);
 }
 
-export const executeMigration = async (query) => {
+const executeMigration = async (query) => {
   const connection = knex({
     client: "mysql2",
     connection: {
