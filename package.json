@@ -1,8 +1,8 @@
 {
-  "name": "expressjs_boiler_plate",
+  "name":"express_boilerplate_cli",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "script.js",
   "type": "module",
   "scripts": {
     "start:orm": "node script.js",

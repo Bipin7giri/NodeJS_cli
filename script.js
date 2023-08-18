@@ -3,7 +3,7 @@ import fs from "fs/promises";
 import inquirer from "inquirer";
 import knex from "knex";
 import path from "path";
-const moduleDir = path.dirname(new URL(import.meta.url).pathname);
+const moduleDir = process.cwd();
 
 async function promptUser() {
 
@@ -457,7 +457,7 @@ app.listen(PORT, () => {
 
 // Call the function to create the index file if needed
 
-async function main() {
+export async function ExpressCLI() {
   const DataBaseConnectionfilePath = path.join(
     moduleDir,
     `src/db/connection.js`
@@ -472,4 +472,3 @@ async function main() {
   await promptUser();
   await createIndexFileForExpress();
 }
-main();
