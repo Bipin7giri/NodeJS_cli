@@ -16,51 +16,73 @@ Welcome to the NodeJS CLI - a powerful tool designed to simplify the process of 
 
 ## Getting Started
 
-1. Clone this repository:
+Sure, here's how you can create a `README.md` for your npm package and demonstrate the usage in a separate script:
 
-```bash
-git clone https://github.com/Bipin7giri/NodeJS_cli.git
-```
+1. **Create README.md**:
 
-2. Navigate to the project directory:
+In the root directory of your package, create a `README.md` file. This file will contain information about your package, its usage, and any other relevant details. Here's a basic example:
 
-```bash
-cd NodeJS_cli
-```
+```markdown
+# Express Boilerplate CLI
 
-3. Install the dependencies:
+This package provides a CLI tool to generate Express.js boilerplate code.
 
-```bash
-npm install
-```
+## Installation
 
-4. Run the CLI tool in development mode:
+You can install the package using npm:
 
-```bash
-npm run start:dev
+```sh
+npm install express_boilerplate_cli
 ```
 
 ## Usage
 
-1. Run the CLI tool using the provided command.
+To use the CLI tool, create a JavaScript file (e.g., `script.js`) and add the following code:
 
-2. Follow the prompts to specify the table name and the number of columns.
+```javascript
+import { ExpressCLI } from "express_boilerplate_cli";
 
-3. Provide details about each column, including column name and data type.
+const main = async () => {
+  await ExpressCLI();
+};
 
-4. The CLI will automatically generate controllers, routers, and services based on your input.
-
-5. Explore the created endpoints to enhance your Node.js application development.
-
-## Contributing
-
-Contributions are welcome! Feel free to open issues or pull requests for any improvements, bug fixes, or new features.
-
-
-
----
-
-Happy coding! 🚀
+main();
 ```
 
-Make sure to adjust the content according to your project's actual structure and specifics.
+Run the script using:
+
+```sh
+node script.js
+```
+
+This will generate Express.js boilerplate code in your project directory.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```
+
+2. **Usage Script**:
+
+Create a JavaScript file named `script.js` (or any other name you prefer) in the same directory where you have your `package.json`. Add the following code to the `script.js` file:
+
+```javascript
+import { ExpressCLI } from "express_boilerplate_cli";
+
+const main = async () => {
+  await ExpressCLI();
+};
+
+main();
+```
+
+3. **Run the Script**:
+
+Open your terminal and navigate to the directory where you have your `script.js` file. Run the script using the following command:
+
+```sh
+node script.js
+```
+
+This will execute the `ExpressCLI` function from your package and generate the Express.js boilerplate code.
+
