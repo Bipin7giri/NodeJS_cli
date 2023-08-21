@@ -1,21 +1,24 @@
-# NodeJS CLI - API Endpoint Generator
+# Node.js CLI - API Endpoint Generator
 
 ## Overview
 
-Welcome to the NodeJS CLI - a powerful tool designed to simplify the process of creating API endpoints in Node.js applications. This CLI automates the generation of endpoints, including GET, POST, PUT, and PATCH methods, along with essential components like controllers, routers, and services.
+Welcome to the Node.js CLI, a robust tool created to simplify the process of building API endpoints in Node.js applications. This CLI automates the endpoint generation for GET, POST, PUT, and PATCH methods, while also handling crucial components like controllers, routers, and services.
 
 ## Features
 
-- Generate API endpoints quickly and effortlessly.
+- Quickly and effortlessly generate API endpoints.
 - Support for GET, POST, PUT, and PATCH methods.
-- Automatic setup of controllers, routers, and services.
-- Boost your development efficiency by reducing manual configuration.
+- Automated setup of controllers, routers, and services.
+- Enhance your development efficiency by minimizing manual configuration.
 
 ## Getting Started
 
-## Usage
+### Usage
 
-To use the CLI tool, create a JavaScript file (e.g., `script.js`) and add the following code:
+To utilize this CLI tool, follow these steps:
+
+1. Create a JavaScript file, e.g., `script.js`, in your project directory.
+2. Add the following code to `script.js`:
 
 ```javascript
 import { ExpressCLI } from "express_boilerplate_cli";
@@ -27,14 +30,16 @@ const main = async () => {
 main();
 ```
 
-Run the script using:
+3. Run the script using the following command:
 
 ```sh
 node script.js
 ```
 
-This will generate Express.js boilerplate code in your project directory.
+This will generate Express.js boilerplate code within your project directory.
 
-## License
+### License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+You can contribute to it by visiting [the GitHub repository](https://github.com/Bipin7giri/NodeJS_cli.git).
+
+Feel free to collaborate and improve this powerful Node.js CLI for API endpoint generation.
