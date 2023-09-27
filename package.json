@@ -1,14 +1,14 @@
 {
-  "name":"express_boilerplate_cli",
-  "version": "1.0.2",
-  "description": "",
+  "name": "express_boilerplate_cli",
+  "version": "1.0.5",
+  "description": "A powerful tool designed to simplify the process of creating API endpoints in Node.js applications.",
   "main": "script.js",
   "type": "module",
   "scripts": {
     "start:orm": "node script.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["Node.js", "API endpoints", "CLI", "controllers", "routers", "services"],
   "author": "",
   "license": "ISC",
   "dependencies": {
