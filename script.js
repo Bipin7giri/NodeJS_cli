@@ -4,9 +4,9 @@ import inquirer from "inquirer";
 import knex from "knex";
 import path from "path";
 const moduleDir = process.cwd();
+let dbConfig;
 
 async function promptUser() {
-
   const tableData = await inquirer.prompt([
     {
       type: "input",
@@ -92,26 +92,25 @@ async function promptUser() {
   console.log(`Routes saved to ${routesFilePath}`);
 
   // api
-const apiFolderPath = path.join(moduleDir, `src/api`);
-const apiFilePath = path.join(apiFolderPath, `index.js`);
+  const apiFolderPath = path.join(moduleDir, `src/api`);
+  const apiFilePath = path.join(apiFolderPath, `index.js`);
 
-try {
-  await fs.mkdir(apiFolderPath, { recursive: true });
+  try {
+    await fs.mkdir(apiFolderPath, { recursive: true });
 
-  const jsFileContentApi = await generateApiContent(); // Wait for the promise to resolve
-  await fs.writeFile(apiFilePath, jsFileContentApi); // Write the resolved content
-  console.log(`API content saved to ${apiFilePath}`);
-} catch (error) {
-  console.error(`Error: ${error}`);
-}
-
+    const jsFileContentApi = await generateApiContent(); // Wait for the promise to resolve
+    await fs.writeFile(apiFilePath, jsFileContentApi); // Write the resolved content
+    console.log(`API content saved to ${apiFilePath}`);
+  } catch (error) {
+    console.error(`Error: ${error}`);
+  }
 
   const createTableStatement = generateCreateTableStatement(tableConfig);
   console.log("\nGenerated CREATE TABLE statement:\n");
   console.log(createTableStatement);
 }
 
-async function dbConnectionPrompt(){
+async function dbConnectionPrompt() {
   const dbCred = await inquirer.prompt([
     {
       type: "input",
@@ -132,7 +131,7 @@ async function dbConnectionPrompt(){
       type: "input",
       name: "dbName",
       message: "Enter the name of the database:",
-    }
+    },
   ]);
   const DataBaseConnectionfilePath = path.join(
     moduleDir,
@@ -142,16 +141,18 @@ async function dbConnectionPrompt(){
   await fs.mkdir(path.dirname(DataBaseConnectionfilePath), { recursive: true });
   const jsFileContentDatabase = generateConnectionJs(dbCred);
   await fs.writeFile(DataBaseConnectionfilePath, jsFileContentDatabase);
+  dbConfig = dbCred;
+  return dbCred;
 }
 
 const executeMigration = async (query) => {
   const connection = knex({
     client: "mysql2",
     connection: {
-      host: "localhost",
-      user: "root",
-      password: "Password123#@!",
-      database: "testdb",
+      host: dbConfig.host,
+      user: dbConfig.username,
+      password: dbConfig.password,
+      database: dbConfig.dbName,
     },
     pool: {
       min: 2,
@@ -302,7 +303,6 @@ export default  ${tableConfig.tableName}Controller
 }
 
 function generateConnectionJs(payload) {
-  console.log(payload)
   return `
   import knex from "knex";
 
@@ -466,8 +466,8 @@ export async function ExpressCLI() {
     () => true,
     (error) => false
   );
-  if(!dbFileExists){
-   await dbConnectionPrompt()
+  if (!dbFileExists) {
+    await dbConnectionPrompt();
   }
   await promptUser();
   await createIndexFileForExpress();
