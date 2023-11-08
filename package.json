@@ -1,6 +1,6 @@
 {
   "name": "express_boilerplate_cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A powerful tool designed to simplify the process of creating API endpoints in Node.js applications.",
   "main": "script.js",
   "type": "module",

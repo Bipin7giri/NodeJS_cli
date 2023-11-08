@@ -4,7 +4,18 @@ import inquirer from "inquirer";
 import knex from "knex";
 import path from "path";
 const moduleDir = process.cwd();
-let dbConfig;
+
+async function importIfFileExists(filePath) {
+  try {
+    await fs.access(filePath); // Check if the file exists
+    const importedModule = await import(filePath); // Dynamically import the module
+    return importedModule;
+  } catch (error) {
+    console.error(`The file at ${filePath} does not exist.`);
+    return null; // Return null or handle the case when the file doesn't exist
+  }
+}
+const connectionPath = "./src/db/connection.js";
 
 async function promptUser() {
   const tableData = await inquirer.prompt([
@@ -146,23 +157,29 @@ async function dbConnectionPrompt() {
 }
 
 const executeMigration = async (query) => {
-  const connection = knex({
-    client: "mysql2",
-    connection: {
-      host: dbConfig.host,
-      user: dbConfig.username,
-      password: dbConfig.password,
-      database: dbConfig.dbName,
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-  });
+  try {
+    const importedModule = await importIfFileExists(connectionPath);
+    if (importedModule) {
+      const { cred } = importedModule;
+      const connection = knex({
+        client: "mysql2",
+        connection: {
+          host: cred.host,
+          user: cred.user,
+          password: cred.password,
+          database: cred.database,
+        },
+        pool: {
+          min: 2,
+          max: 10,
+        },
+      });
 
-  await connection.raw(query);
-
-  connection.destroy();
+      await connection.raw(query);
+    }
+  } catch (err) {
+    throw err;
+  }
 };
 async function generateCreateTableStatement(tableConfig) {
   const columns = tableConfig.columns
@@ -305,7 +322,10 @@ export default  ${tableConfig.tableName}Controller
 function generateConnectionJs(payload) {
   return `
   import knex from "knex";
-
+  export  const cred = {      host: '${payload.host}',
+   user: '${payload.username}',
+   password: '${payload.password}',
+   database: '${payload.dbName}',}
   const connection = knex({
     client: 'mysql2',
     connection: {
