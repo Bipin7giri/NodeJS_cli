@@ -3,9 +3,19 @@ import fs from "fs/promises";
 import inquirer from "inquirer";
 import knex from "knex";
 import path from "path";
-import { varCharLength } from "./utils/sql/index.js";
 const moduleDir = process.cwd();
-let dbConfig;
+
+async function importIfFileExists(filePath) {
+  try {
+    await fs.access(filePath); // Check if the file exists
+    const importedModule = await import(filePath); // Dynamically import the module
+    return importedModule;
+  } catch (error) {
+    console.error(`The file at ${filePath} does not exist.`);
+    return null; // Return null or handle the case when the file doesn't exist
+  }
+}
+const connectionPath = "./src/db/connection.js";
 
 async function promptUser() {
   const tableData = await inquirer.prompt([
@@ -13,7 +23,6 @@ async function promptUser() {
       type: "input",
       name: "tableName",
       message: "Enter the table name:",
-      default: 10,
     },
     {
       type: "input",
@@ -25,18 +34,6 @@ async function promptUser() {
       },
     },
   ]);
-
-  const constarintsQuestion = [
-    {
-      type: "input",
-      name: "length",
-      message: "Enter the length of data",
-      validate: (value) => {
-        const num = parseInt(value);
-        return !isNaN(num) && num > 0 ? true : "Please enter a valid number.";
-      },
-    },
-  ];
 
   const columns = [];
   let firstIntColumn = true; // Flag to track the first "int" column
@@ -61,10 +58,6 @@ async function promptUser() {
       columnType: columnData.dataType,
     };
 
-    if (columnData.dataType == "varchar") {
-      let columnsConstarints = await inquirer.prompt(constarintsQuestion);
-      column.columnType = varCharLength(columnsConstarints.length);
-    }
     // If it's the first column with 'int' type, set primaryKey and autoIncrement
     if (columnData.dataType === "int") {
       if (firstIntColumn) {
@@ -123,7 +116,7 @@ async function promptUser() {
     console.error(`Error: ${error}`);
   }
 
-  const createTableStatement = await generateCreateTableStatement(tableConfig);
+  const createTableStatement = generateCreateTableStatement(tableConfig);
   console.log("\nGenerated CREATE TABLE statement:\n");
   console.log(createTableStatement);
 }
@@ -151,55 +144,43 @@ async function dbConnectionPrompt() {
       message: "Enter the name of the database:",
     },
   ]);
-
   const DataBaseConnectionfilePath = path.join(
     moduleDir,
     `src/db/connection.js`
-  );
-  const DataBaseConnectionConfigPath = path.join(
-    moduleDir,
-    `src/db/connection.json`
   );
   // Create the directory if it doesn't exist
   await fs.mkdir(path.dirname(DataBaseConnectionfilePath), { recursive: true });
   const jsFileContentDatabase = generateConnectionJs(dbCred);
   await fs.writeFile(DataBaseConnectionfilePath, jsFileContentDatabase);
-  await fs.writeFile(
-    DataBaseConnectionConfigPath,
-    JSON.stringify(dbCred, null, 2)
-  );
   dbConfig = dbCred;
   return dbCred;
 }
 
-//drop table if exists already
-const dropCheckTableIfExists = async (tableName, database) => {
-  let connection = getConnection();
-  await connection.schema.dropTableIfExists(tableName);
-};
-
-const getConnection = () => {
-  return knex({
-    client: "mysql2",
-    connection: {
-      host: dbConfig.host,
-      user: dbConfig.username,
-      password: dbConfig.password,
-      database: dbConfig.dbName,
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-  });
-};
-
 const executeMigration = async (query) => {
-  const connection = getConnection();
-  await connection.raw(query);
-  connection.destroy();
-};
+  try {
+    const importedModule = await importIfFileExists(connectionPath);
+    if (importedModule) {
+      const { cred } = importedModule;
+      const connection = knex({
+        client: "mysql2",
+        connection: {
+          host: cred.host,
+          user: cred.user,
+          password: cred.password,
+          database: cred.database,
+        },
+        pool: {
+          min: 2,
+          max: 10,
+        },
+      });
 
+      await connection.raw(query);
+    }
+  } catch (err) {
+    throw err;
+  }
+};
 async function generateCreateTableStatement(tableConfig) {
   const columns = tableConfig.columns
     .map((column) => {
@@ -213,7 +194,7 @@ async function generateCreateTableStatement(tableConfig) {
       return `${column.columnName} ${dataType} ${primaryKey}`;
     })
     .join(", ");
-  await dropCheckTableIfExists(tableConfig.tableName);
+
   executeMigration(`CREATE TABLE ${tableConfig.tableName} (${columns});`);
   return `CREATE TABLE ${tableConfig.tableName} (${columns});`;
 }
@@ -341,7 +322,10 @@ export default  ${tableConfig.tableName}Controller
 function generateConnectionJs(payload) {
   return `
   import knex from "knex";
-
+  export  const cred = {      host: '${payload.host}',
+   user: '${payload.username}',
+   password: '${payload.password}',
+   database: '${payload.dbName}',}
   const connection = knex({
     client: 'mysql2',
     connection: {
@@ -421,7 +405,6 @@ export default router;
 }
 
 async function createIndexFileForExpress() {
-  console.log(moduleDir, "module dir");
   const indexFilePath = path.join(moduleDir, "index.js");
 
   // Check if the index file already exists
@@ -497,7 +480,7 @@ app.listen(PORT, () => {
 export async function ExpressCLI() {
   const DataBaseConnectionfilePath = path.join(
     moduleDir,
-    `src/db/connection.json`
+    `src/db/connection.js`
   );
   const dbFileExists = await fs.access(DataBaseConnectionfilePath).then(
     () => true,
@@ -505,12 +488,7 @@ export async function ExpressCLI() {
   );
   if (!dbFileExists) {
     await dbConnectionPrompt();
-  } else {
-    let tempData = await fs.readFile(DataBaseConnectionfilePath, "utf-8");
-    dbConfig = JSON.parse(tempData);
   }
-
   await promptUser();
   await createIndexFileForExpress();
-  process.exit(1);
 }
